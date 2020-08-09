@@ -2,16 +2,27 @@ module MySimulations
 
 # Write your package code here.
 using Random, Distributions
-import Plots.plot
+import Plots.plot, Plots.plot!
 
 include("events.jl")
 include("helpers.jl")
 include("propensities.jl")
 include("structs.jl")
 
+export MySEIR, MyBirthDeath
+export direct_ssa!, tau_leap!
+export ensemble_ssa!, ensemble_tau!
+export plot_solution, plot_solution!
+
 function MySEIR(init, params)
     return MyProblem(MyParameters(params...),
                      init,
+                     nothing)
+end
+
+function MyBirthDeath(init, μ)
+    return MyProblem(MyParameters(μ, 0, 0, 0, 0),
+                     (init, 0, 0, 0),
                      nothing)
 end
 
@@ -122,4 +133,23 @@ function tau_leap!(prb::MyProblem, n_days, τ)
     end
 end
 
+function ensemble_ssa!(prb, n_days, n_ensemble=10)
+    ensemble = []
+    for i = 1:n_ensemble
+        direct_ssa!(prb, n_days)
+        solution = prb.data
+        push!(ensemble, solution)
+    end
+    return ensemble
+end
+
+function ensemble_tau!(prb, n_days, τ, n_ensemble=10)
+    ensemble = []
+    for i = 1:n_ensemble
+        tau_leap!(prb, n_days, τ)
+        solution = prb.data
+        push!(ensemble, solution)
+    end
+    return ensemble
+end
 end
