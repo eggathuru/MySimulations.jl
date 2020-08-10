@@ -1,6 +1,5 @@
 module MySimulations
 
-# Write your package code here.
 using Random, Distributions
 import Plots.plot, Plots.plot!
 
@@ -143,13 +142,9 @@ function tau_leap!(prb::MyProblem, n_days, τ)
             prb.data.R[post] = state[4]
         end
 
-        a_t = a_i(state, params)
-        for i in 1:8
-            if a_t[i] < 0
-                @show a_t[i]
-            end
-        end
-        p = [p_rand(τ*a_t[i]) for i in 1:8]
+        # Draws from Poisson distribution
+        λ = τ * a_i(state, params)
+        p = [p_rand(λ[i]) for i in 1:8]
 
         birth!(                   prb.data, post, p[1] )
 
@@ -174,7 +169,7 @@ using the Gillespie algorithm.
 """
 function ensemble_ssa!(prb, n_days, n_ensemble=10)
     ensemble = []
-    for i = 1:n_ensemble
+    for i in 1:n_ensemble
         direct_ssa!(prb, n_days)
         solution = prb.data
         push!(ensemble, solution)
@@ -190,7 +185,7 @@ using the explicit tau leaping.
 """
 function ensemble_tau!(prb, n_days, τ, n_ensemble=10)
     ensemble = []
-    for i = 1:n_ensemble
+    for i in 1:n_ensemble
         tau_leap!(prb, n_days, τ)
         solution = prb.data
         push!(ensemble, solution)

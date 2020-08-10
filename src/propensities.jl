@@ -1,7 +1,7 @@
-birth_rate(state, parameters) = parameters.μ * sum(state[1:4])
+birth_rate(state, parameters) = parameters.μ * sum(state)
 
 function exposure_rate(state, parameters)
-    Σ = sum(state[1:4])
+    Σ = sum(state)
     M = parameters.β * state[1] * state[3]
     if Σ == M == 0 return 0 else return M/Σ end # prevents 0/0
 end
