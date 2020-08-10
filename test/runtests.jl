@@ -3,13 +3,13 @@ import Plots.Plot
 
 @testset "MySimulations.jl" begin
     @testset "p_rand" begin
-        try p_rand(-1) catch e
+        try MySimulations.p_rand(-1) catch e
             @test typeof(e) <: ErrorException
         end
-        try p_rand(NaN) catch e
+        try MySimulations.p_rand(NaN) catch e
             @test typeof(e) <: ErrorException
         end
-        try p_rand(Inf) catch e
+        try MySimulations.p_rand(Inf) catch e
             @test typeof(e) <: ErrorException
         end
     end
