@@ -14,21 +14,41 @@ export direct_ssa!, tau_leap!
 export ensemble_ssa!, ensemble_tau!
 export plot_solution, plot_solution!
 
+"""
+    MySEIR(init, params)
+
+Returns a `MyProblem` instance with all parameters specified.
+"""
 function MySEIR(init, params)
     return MyProblem(MyParameters(params...),
                      init,
                      nothing)
 end
 
+"""
+    MyBirthDeath(init, μ)
+
+Returns a `MyProblem` instance with only the birth/death
+parameter specified and all blocks but susceptible `S`
+initialized to zero.
+"""
 function MyBirthDeath(init, μ)
     return MyProblem(MyParameters(μ, 0, 0, 0, 0),
                      (init, 0, 0, 0),
                      nothing)
 end
 
+"""
+    direct_ssa!(prb::MyProblem, n_iter)
+
+Runs through `n_iter` iterations of the Gillespie algorithm
+with the parameters and initial conditions specified by
+`prb`.
+"""
 function direct_ssa!(prb::MyProblem, n_iter)
     # Create data object
-    data = MyData([zeros(Float64, n_iter) for _ in 1:5]...)
+    data = MyData([zeros(Int, n_iter) for _ in 1:4]...,
+                   zeros(Float64, n_iter))
     data.S[1] = prb.initial_condition[1]
     data.E[1] = prb.initial_condition[2]
     data.I[1] = prb.initial_condition[3]
@@ -57,37 +77,45 @@ function direct_ssa!(prb::MyProblem, n_iter)
 
         # birth
         if     r₂*a₀ <= ∑a(state, params, 1)
-            birth!(                    prb.data, i )
+            birth!(                   prb.data, i )
         # exposure
         elseif r₂*a₀ <= ∑a(state, params, 2)
-            susceptible_to_exposed!(   prb.data, i )
+            susceptible_to_exposed!(  prb.data, i )
         # onset
         elseif r₂*a₀ <= ∑a(state, params, 3)
-            exposed_to_infectious!(    prb.data, i )
+            exposed_to_infectious!(   prb.data, i )
         # recovery
         elseif r₂*a₀ <= ∑a(state, params, 4)
-            infectious_to_resistant!(  prb.data, i )
+            infectious_to_resistant!( prb.data, i )
         # natural death (S)
         elseif r₂*a₀ <= ∑a(state, params, 5)
-            susceptible_death!(        prb.data, i )
+            susceptible_death!(       prb.data, i )
         # natural death (E)
         elseif r₂*a₀ <= ∑a(state, params, 6)
-            exposed_death!(            prb.data, i )
+            exposed_death!(           prb.data, i )
         # infected death
         elseif r₂*a₀ <= ∑a(state, params, 7)
-            infected_death!(           prb.data, i )
+            infected_death!(          prb.data, i )
         # natural death (R)
         else
-            recovered_death!(          prb.data, i )
+            recovered_death!(         prb.data, i )
         end
 
         prb.data.T[i] = τ + prb.data.T[i-1]
     end
 end
 
+"""
+    tau_leap!(prb::MyProblem, n_days, τ)
+
+Simulates `n_days` using explicit tau leaping
+with the parameters and initial conditions specified by
+`prb`.
+"""
 function tau_leap!(prb::MyProblem, n_days, τ)
     # Create data object
-    data = MyData([zeros(Float64, n_days) for _ in 1:5]...)
+    data = MyData([zeros(Int, n_days) for _ in 1:4]...,
+                   zeros(Float64, n_days))
     data.S[1] = prb.initial_condition[1]
     data.E[1] = prb.initial_condition[2]
     data.I[1] = prb.initial_condition[3]
@@ -116,23 +144,34 @@ function tau_leap!(prb::MyProblem, n_days, τ)
         end
 
         a_t = a_i(state, params)
+        for i in 1:8
+            if a_t[i] < 0
+                @show a_t[i]
+            end
+        end
         p = [p_rand(τ*a_t[i]) for i in 1:8]
 
-        birth!(                     prb.data, post, p[1]   )
+        birth!(                   prb.data, post, p[1] )
 
-        susceptible_to_exposed!(    prb.data, post, p[2]   )
-        exposed_to_infectious!(     prb.data, post, p[3]   )
-        infectious_to_resistant!(   prb.data, post, p[4]   )
+        susceptible_to_exposed!(  prb.data, post, p[2] )
+        exposed_to_infectious!(   prb.data, post, p[3] )
+        infectious_to_resistant!( prb.data, post, p[4] )
 
-        susceptible_death!(         prb.data, post, p[5]   )
-        exposed_death!(             prb.data, post, p[6]   )
-        infected_death!(            prb.data, post, p[7]   )
-        recovered_death!(           prb.data, post, p[8]   )
+        susceptible_death!(       prb.data, post, p[5] )
+        exposed_death!(           prb.data, post, p[6] )
+        infected_death!(          prb.data, post, p[7] )
+        recovered_death!(         prb.data, post, p[8] )
 
         prb.data.T[post] = τ + prb.data.T[prev]
     end
 end
 
+"""
+    ensemble_ssa!(prb, n_days, n_ensemble=10)
+
+Runs `n_ensemble` simulations of the problem `prb`
+using the Gillespie algorithm.
+"""
 function ensemble_ssa!(prb, n_days, n_ensemble=10)
     ensemble = []
     for i = 1:n_ensemble
@@ -143,6 +182,12 @@ function ensemble_ssa!(prb, n_days, n_ensemble=10)
     return ensemble
 end
 
+"""
+    ensemble_tau!(prb, n_days, τ, n_ensemble=10)
+
+Runs `n_ensemble` simulations of the problem `prb`
+using the explicit tau leaping.
+"""
 function ensemble_tau!(prb, n_days, τ, n_ensemble=10)
     ensemble = []
     for i = 1:n_ensemble

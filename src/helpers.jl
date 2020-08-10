@@ -17,9 +17,9 @@ function plot_solution(data)
                 linetype=:steppost)
 end
 
-function plot_solution!(data)
+function plot_solution!(p, data)
     t, S, E, I, R = unpack(data)
-    return plot!(t, [S E I R],
+    return plot!(p, t, [S E I R],
                  label=['S' 'E' 'I' 'R'],
                  xlabel = "Time",
                  ylabel = "People",

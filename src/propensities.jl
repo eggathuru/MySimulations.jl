@@ -1,6 +1,10 @@
 birth_rate(state, parameters) = parameters.μ * sum(state[1:4])
 
-exposure_rate(state, parameters) = parameters.β * state[1] * state[3] / (sum(state[1:4]))
+function exposure_rate(state, parameters)
+    Σ = sum(state[1:4])
+    M = parameters.β * state[1] * state[3]
+    if Σ == M == 0 return 0 else return M/Σ end # prevents 0/0
+end
 infection_rate(state, parameters) = parameters.a * state[2]
 recovery_rate(state, parameters) = parameters.γ * state[3]
 
@@ -28,5 +32,3 @@ function ∑a(state, parameters, i)
     a_t = a_i(state, parameters)
     return sum(a_t[1:i])
 end
-
-export a_i, ∑a
