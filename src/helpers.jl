@@ -28,6 +28,10 @@ function plot_solution!(p, data)
 end
 
 function p_rand(λ)
-    p = Poisson(λ)
-    return rand(p)
+    if !(λ >= zero(λ)) || λ == Inf
+        error("Poisson λ has value $λ")
+    else
+        p = Poisson(λ)
+        return rand(p)
+    end
 end

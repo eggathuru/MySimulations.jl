@@ -9,9 +9,9 @@ platform:
   - x64
 cache:
   - '%USERPROFILE%\.julia\artifacts'
-matrix:
-  allow_failures:
-    - julia_version: nightly
+# matrix:
+#   allow_failures:
+#     - julia_version: nightly
 branches:
   only:
     - master
