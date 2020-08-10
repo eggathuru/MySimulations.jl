@@ -19,6 +19,7 @@ cache:
 jobs:
   fast_finish: true
   allow_failures:
+    - os: windows
     - julia: nightly
 after_success:
   - |
