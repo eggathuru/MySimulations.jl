@@ -57,16 +57,16 @@ function direct_ssa!(prb::MyProblem, n_iter)
     params = prb.parameters
     for i in 2:n_iter
         # Store previous state state
-        state = prb.data.S[i-1],
-                prb.data.E[i-1],
-                prb.data.I[i-1],
-                prb.data.R[i-1]
+        state = data.S[i-1],
+                data.E[i-1],
+                data.I[i-1],
+                data.R[i-1]
 
         # Copy previous state into posterior
-        prb.data.S[i] = state[1]
-        prb.data.E[i] = state[2]
-        prb.data.I[i] = state[3]
-        prb.data.R[i] = state[4]
+        data.S[i] = state[1]
+        data.E[i] = state[2]
+        data.I[i] = state[3]
+        data.R[i] = state[4]
 
         a₀ = ∑a(state, params, 8)
 
@@ -76,31 +76,31 @@ function direct_ssa!(prb::MyProblem, n_iter)
 
         # birth
         if     r₂*a₀ <= ∑a(state, params, 1)
-            birth!(                   prb.data, i )
+            birth!(                   data, i )
         # exposure
         elseif r₂*a₀ <= ∑a(state, params, 2)
-            susceptible_to_exposed!(  prb.data, i )
+            susceptible_to_exposed!(  data, i )
         # onset
         elseif r₂*a₀ <= ∑a(state, params, 3)
-            exposed_to_infectious!(   prb.data, i )
+            exposed_to_infectious!(   data, i )
         # recovery
         elseif r₂*a₀ <= ∑a(state, params, 4)
-            infectious_to_resistant!( prb.data, i )
+            infectious_to_resistant!( data, i )
         # natural death (S)
         elseif r₂*a₀ <= ∑a(state, params, 5)
-            susceptible_death!(       prb.data, i )
+            susceptible_death!(       data, i )
         # natural death (E)
         elseif r₂*a₀ <= ∑a(state, params, 6)
-            exposed_death!(           prb.data, i )
+            exposed_death!(           data, i )
         # infected death
         elseif r₂*a₀ <= ∑a(state, params, 7)
-            infected_death!(          prb.data, i )
+            infected_death!(          data, i )
         # natural death (R)
         else
-            recovered_death!(         prb.data, i )
+            recovered_death!(         data, i )
         end
 
-        prb.data.T[i] = τ + prb.data.T[i-1]
+        data.T[i] = τ + data.T[i-1]
     end
 end
 
@@ -122,42 +122,38 @@ function tau_leap!(prb::MyProblem, n_days, τ)
     prb.data = data
 
     params = prb.parameters
-    state = prb.initial_condition
 
     for n in 1:τ:n_days
         prev = floor(Int, n)
         post = floor(Int, n+τ)
 
-        # Store previous state state
-        state = prb.data.S[prev],
-                prb.data.E[prev],
-                prb.data.I[prev],
-                prb.data.R[prev]
-
         # Copy previous state into posterior
         if (prev != post)
-            prb.data.S[post] = state[1]
-            prb.data.E[post] = state[2]
-            prb.data.I[post] = state[3]
-            prb.data.R[post] = state[4]
+            data.S[post] = data.S[prev]
+            data.E[post] = data.E[prev]
+            data.I[post] = data.I[prev]
+            data.R[post] = data.R[prev]
         end
 
         # Draws from Poisson distribution
-        λ = τ * a_i(state, params)
-        p = [p_rand(λ[i]) for i in 1:8]
+        λ = τ * a_i([data.S[prev],
+                     data.E[prev],
+                     data.I[prev],
+                     data.R[prev]],
+                    params)
 
-        birth!(                   prb.data, post, p[1] )
+        birth!(                   data, post, p_rand(λ[1]              ) )
 
-        susceptible_to_exposed!(  prb.data, post, p[2] )
-        exposed_to_infectious!(   prb.data, post, p[3] )
-        infectious_to_resistant!( prb.data, post, p[4] )
+        susceptible_to_exposed!(  data, post, p_rand(λ[2], data.S[post]) )
+        exposed_to_infectious!(   data, post, p_rand(λ[3], data.E[post]) )
+        infectious_to_resistant!( data, post, p_rand(λ[4], data.I[post]) )
 
-        susceptible_death!(       prb.data, post, p[5] )
-        exposed_death!(           prb.data, post, p[6] )
-        infected_death!(          prb.data, post, p[7] )
-        recovered_death!(         prb.data, post, p[8] )
+        susceptible_death!(       data, post, p_rand(λ[5], data.S[post]) )
+        exposed_death!(           data, post, p_rand(λ[6], data.E[post]) )
+        infected_death!(          data, post, p_rand(λ[7], data.I[post]) )
+        recovered_death!(         data, post, p_rand(λ[8], data.R[post]) )
 
-        prb.data.T[post] = τ + prb.data.T[prev]
+        data.T[post] = τ + data.T[prev]
     end
 end
 

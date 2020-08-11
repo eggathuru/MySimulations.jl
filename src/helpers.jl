@@ -27,11 +27,14 @@ function plot_solution!(p, data)
                  linetype=:steppost)
 end
 
-function p_rand(λ)
+function p_rand(λ, max=Inf)
     if !(λ >= zero(λ)) || λ == Inf
         error("Poisson λ has value $λ")
+    elseif max == 0
+        return 0
     else
-        p = Poisson(λ)
+        d = Poisson(λ)
+        p = truncated(d, 0, max)
         return rand(p)
     end
 end
