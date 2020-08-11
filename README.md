@@ -6,4 +6,4 @@
 [![Coverage](https://coveralls.io/repos/github/eggathuru/MySimulations.jl/badge.svg?branch=master)](https://coveralls.io/github/eggathuru/MySimulations.jl?branch=master)
 
 ## Purpose
-This is a repository of my implementations of the SSA and tau leaping as described by Gillespie.
+This package provides a set of tools for comparing how a tau leaping simulation varies according to population size and choice of tau.
