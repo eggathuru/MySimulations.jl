@@ -3,13 +3,14 @@ using MySimulations, Plots, Statistics
 # Simulation parameters
 n_days = 1000
 n_ensemble = 30
+μ = 0.02 # birth/death
 
 # Independent variables
 N = 10
 τ = 0.05
 
 # Run simulations
-prb = MyBirthDeath(N, 0.02)
+prb = MyBirthDeath(N, μ)
 e = ensemble_tau!(prb, n_days, τ, n_ensemble)
 
 # Plot ensemble
