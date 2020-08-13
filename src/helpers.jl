@@ -27,14 +27,37 @@ function plot_solution!(p, data)
                  linetype=:steppost)
 end
 
-function p_rand(λ, max=Inf)
+"""
+    c_rand(λ, upper)
+
+Returns a sample from a Poisson distribution
+with mean λ but clips values above `upper`.
+"""
+function c_rand(λ, upper=Inf)
     if !(λ >= zero(λ)) || λ == Inf
         error("Poisson λ has value $λ")
-    elseif max == 0
+    elseif upper == 0
+        return 0
+    else
+        p = Poisson(λ)
+        return min(upper, rand(p))
+    end
+end
+
+"""
+    t_rand(λ, upper)
+
+Returns a sample from a Poisson truncated with upper
+bound `upper` distribution with mean `λ`.
+"""
+function t_rand(λ, upper=Inf)
+    if !(λ >= zero(λ)) || λ == Inf
+        error("Poisson λ has value $λ")
+    elseif upper == 0
         return 0
     else
         d = Poisson(λ)
-        p = truncated(d, 0, max)
+        p = truncated(d, 0, upper)
         return rand(p)
     end
 end

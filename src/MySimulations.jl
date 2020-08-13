@@ -21,6 +21,7 @@ Returns a `MyProblem` instance with all parameters specified.
 function MySEIR(init, params)
     return MyProblem(MyParameters(params...),
                      init,
+                     0,
                      nothing)
 end
 
@@ -34,6 +35,7 @@ initialized to zero.
 function MyBirthDeath(init, μ)
     return MyProblem(MyParameters(μ, 0, 0, 0, 0),
                      (init, 0, 0, 0),
+                     0,
                      nothing)
 end
 
@@ -76,28 +78,28 @@ function direct_ssa!(prb::MyProblem, n_iter)
 
         # birth
         if     r₂*a₀ <= ∑a(state, params, 1)
-            birth!(                   data, i )
+            birth!(                   prb, i )
         # exposure
         elseif r₂*a₀ <= ∑a(state, params, 2)
-            susceptible_to_exposed!(  data, i )
+            susceptible_to_exposed!(  prb, i )
         # onset
         elseif r₂*a₀ <= ∑a(state, params, 3)
-            exposed_to_infectious!(   data, i )
+            exposed_to_infectious!(   prb, i )
         # recovery
         elseif r₂*a₀ <= ∑a(state, params, 4)
-            infectious_to_resistant!( data, i )
+            infectious_to_resistant!( prb, i )
         # natural death (S)
         elseif r₂*a₀ <= ∑a(state, params, 5)
-            susceptible_death!(       data, i )
+            susceptible_death!(       prb, i )
         # natural death (E)
         elseif r₂*a₀ <= ∑a(state, params, 6)
-            exposed_death!(           data, i )
+            exposed_death!(           prb, i )
         # infected death
         elseif r₂*a₀ <= ∑a(state, params, 7)
-            infected_death!(          data, i )
+            infected_death!(          prb, i )
         # natural death (R)
         else
-            recovered_death!(         data, i )
+            recovered_death!(         prb, i )
         end
 
         data.T[i] = τ + data.T[i-1]
@@ -110,6 +112,8 @@ end
 Simulates `n_days` using explicit tau leaping
 with the parameters and initial conditions specified by
 `prb`.
+
+input τ: must be between 0 and 1 (exclusive)
 """
 function tau_leap!(prb::MyProblem, n_days, τ)
     # Create data object
@@ -142,16 +146,16 @@ function tau_leap!(prb::MyProblem, n_days, τ)
                      data.R[prev]],
                     params)
 
-        birth!(                   data, post, p_rand(λ[1]              ) )
+        birth!(                   prb, post, c_rand(λ[1]              ) )
 
-        susceptible_to_exposed!(  data, post, p_rand(λ[2], data.S[post]) )
-        exposed_to_infectious!(   data, post, p_rand(λ[3], data.E[post]) )
-        infectious_to_resistant!( data, post, p_rand(λ[4], data.I[post]) )
+        susceptible_to_exposed!(  prb, post, c_rand(λ[2], data.S[post]) )
+        exposed_to_infectious!(   prb, post, c_rand(λ[3], data.E[post]) )
+        infectious_to_resistant!( prb, post, c_rand(λ[4], data.I[post]) )
 
-        susceptible_death!(       data, post, p_rand(λ[5], data.S[post]) )
-        exposed_death!(           data, post, p_rand(λ[6], data.E[post]) )
-        infected_death!(          data, post, p_rand(λ[7], data.I[post]) )
-        recovered_death!(         data, post, p_rand(λ[8], data.R[post]) )
+        susceptible_death!(       prb, post, c_rand(λ[5], data.S[post]) )
+        exposed_death!(           prb, post, c_rand(λ[6], data.E[post]) )
+        infected_death!(          prb, post, c_rand(λ[7], data.I[post]) )
+        recovered_death!(         prb, post, c_rand(λ[8], data.R[post]) )
 
         data.T[post] = τ + data.T[prev]
     end

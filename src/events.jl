@@ -1,42 +1,43 @@
-function birth!(data, i, v = 1)
-    data.S[i] += v
+function birth!(prb, i, v = 1)
+    prb.data.S[i] += v
+    if v > 0 prb.total_reactions += 1 end
 end
 
-function susceptible_to_exposed!(data, i, v = 1)
-    # v = min(v, data.S[i]) # hack solution
-    data.S[i] -= v
-    data.E[i] += v
+function susceptible_to_exposed!(prb, i, v = 1)
+    prb.data.S[i] -= v
+    prb.data.E[i] += v
+    if v > 0 prb.total_reactions += 1 end
 end
 
-function exposed_to_infectious!(data, i, v = 1)
-    # v = min(v, data.E[i]) # hack solution
-    data.E[i] -= v
-    data.I[i] += v
+function exposed_to_infectious!(prb, i, v = 1)
+    prb.data.E[i] -= v
+    prb.data.I[i] += v
+    if v > 0 prb.total_reactions += 1 end
 end
 
-function infectious_to_resistant!(data, i, v = 1)
-    # v = min(v, data.I[i]) # hack solution
-    data.I[i] -= v
-    data.R[i] += v
+function infectious_to_resistant!(prb, i, v = 1)
+    prb.data.I[i] -= v
+    prb.data.R[i] += v
+    if v > 0 prb.total_reactions += 1 end
 end
 
 # Death events
-function susceptible_death!(data, i, v = 1)
-    # v = min(v, data.S[i]) # hack solution
-    data.S[i] -= v
+function susceptible_death!(prb, i, v = 1)
+    prb.data.S[i] -= v
+    if v > 0 prb.total_reactions += 1 end
 end
 
-function exposed_death!(data, i, v = 1)
-    # v = min(v, data.E[i]) # hack solution
-    data.E[i] -= v
+function exposed_death!(prb, i, v = 1)
+    prb.data.E[i] -= v
+    if v > 0 prb.total_reactions += 1 end
 end
 
-function infected_death!(data, i, v = 1)
-    # v = min(v, data.I[i]) # hack solution
-    data.I[i] -= v
+function infected_death!(prb, i, v = 1)
+    prb.data.I[i] -= v
+    if v > 0 prb.total_reactions += 1 end
 end
 
-function recovered_death!(data, i, v = 1)
-    # v = min(v, data.R[i]) # hack solution
-    data.R[i] -= v
+function recovered_death!(prb, i, v = 1)
+    prb.data.R[i] -= v
+    if v > 0 prb.total_reactions += 1 end
 end

@@ -2,15 +2,28 @@ using MySimulations, Test
 import Plots.Plot
 
 @testset "MySimulations.jl" begin
-    @testset "p_rand" begin
-        try MySimulations.p_rand(-1) catch e
-            @test typeof(e) <: ErrorException
+    @testset "Distributions" begin
+        @testset "c_rand" begin
+            try MySimulations.c_rand(-1) catch e
+                @test typeof(e) <: ErrorException
+            end
+            try MySimulations.c_rand(NaN) catch e
+                @test typeof(e) <: ErrorException
+            end
+            try MySimulations.c_rand(Inf) catch e
+                @test typeof(e) <: ErrorException
+            end
         end
-        try MySimulations.p_rand(NaN) catch e
-            @test typeof(e) <: ErrorException
-        end
-        try MySimulations.p_rand(Inf) catch e
-            @test typeof(e) <: ErrorException
+        @testset "t_rand" begin
+            try MySimulations.t_rand(-1) catch e
+                @test typeof(e) <: ErrorException
+            end
+            try MySimulations.t_rand(NaN) catch e
+                @test typeof(e) <: ErrorException
+            end
+            try MySimulations.t_rand(Inf) catch e
+                @test typeof(e) <: ErrorException
+            end
         end
     end
     @testset "Birth Death" begin
