@@ -12,11 +12,11 @@ mutable struct MyData
     I::Union{Nothing,Vector{Int}}
     R::Union{Nothing,Vector{Int}}
     T::Union{Nothing,Vector{Float64}}
+    total_reactions::Int
 end
 
 mutable struct MyProblem
     parameters::MyParameters
     initial_condition
-    total_reactions::Int
     data::Union{Nothing,MyData}
 end
