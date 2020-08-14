@@ -1,33 +1,43 @@
 using MySimulations, Statistics
 
 # Simulation parameters
-n_days = 2000
+n_days = 10_000
 n_ensemble = 100
 μ = 0.02
 params = μ, 0.055, 0.07, 0.006, 0.001
 
 # N₀, τ
-experiments = [(  100, 0.05),
-               (  100, 0.25),
-               (  100, 0.99),
+experiments = [(  100,   0.1),
+               (  100,   1.0),
+               (  100,   5.0),
+               (  100,  10.0),
+               (  100,  50.0),
+               (  100, 100.0),
 
-               ( 1000, 0.05),
-               ( 1000, 0.25),
-               ( 1000, 0.99),
+               ( 1000,   0.1),
+               ( 1000,   1.0),
+               ( 1000,   5.0),
+               ( 1000,  10.0),
+               ( 1000,  50.0),
+               ( 1000, 100.0),
 
-               (10000, 0.05),
-               (10000, 0.25),
-               (10000, 0.99)]
+               (10000,   0.1),
+               (10000,   1.0),
+               (10000,   5.0),
+               (10000,  10.0),
+               (10000,  50.0),
+               (10000, 100.0)]
 
-println("Birth Death---------------------------------------")
-for (N₀, τ) in experiments
-    println()
+BD_STD = zeros(6, 3)
+BD_AVG = zeros(6, 3)
+for (i, experiment) in enumerate(experiments)
+    N₀, τ = experiment
 
     # Run simulations
     prb = MyBirthDeath(N₀, μ)
     e = ensemble_tau!(prb, n_days, τ, n_ensemble)
 
-    M = zeros(Int, n_ensemble, n_days)
+    M = zeros(Int, n_ensemble, length(e[i].S))
 
     reactions = 0
     for i in 1:n_ensemble
@@ -36,25 +46,20 @@ for (N₀, τ) in experiments
     end
 
     σs = std(M, dims=1)[1, :]
-    final_variance = σs[end] / N₀
-
-    println("(N₀=$N₀, τ=$τ)")
-    println("Final variance is σₙ/N₀=$final_variance.")
-
-    average_event = reactions * τ / (n_days * n_ensemble)
-    println("Average events per time step: $average_event.")
+    BD_STD[i] = σs[end] / N₀
+    BD_AVG[i] = reactions * τ / (n_days * n_ensemble)
 end
 
-println("SEIR----------------------------------------------")
-for (N₀, τ) in experiments
-    println()
-
+SI_STD = zeros(6, 3)
+SI_AVG = zeros(6, 3)
+for (i, experiment) in enumerate(experiments)
+    N₀, τ = experiment
     # Run simulations
-    prb = MySEIR(N₀*[0.9, 0, 0.1, 0],
+    prb = MySEIR(N₀*[0.95, 0, 0.05, 0],
                     params)
     e = ensemble_tau!(prb, n_days, τ, n_ensemble)
 
-    M_I = zeros(Int, n_ensemble, n_days)
+    M_I = zeros(Int, n_ensemble, length(e[i].S))
 
     reactions = 0
     for i in 1:n_ensemble
@@ -63,11 +68,6 @@ for (N₀, τ) in experiments
     end
 
     σIs = std(M_I, dims=1)[1, :]
-    final_variance = σIs[end] / N₀
-
-    println("(N₀=$N₀, τ=$τ)")
-    println("Final variance is σₙ/N₀=$final_variance.")
-
-    average_event = reactions * τ / (n_days * n_ensemble)
-    println("Average events per time step: $average_event.")
+    SI_STD[i] = σIs[end] / N₀
+    SI_AVG[i] = reactions * τ / (n_days * n_ensemble)
 end

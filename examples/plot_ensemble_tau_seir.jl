@@ -11,7 +11,7 @@ a = 0.07 # onset
 
 # Independent variables
 N = 100 # S₀ E₀ I₀ R₀
-τ = 0.99
+τ = 0.1
 
 # Run simulations
 prb = MySEIR(N*[0.9, 0, 0.1, 0],
@@ -30,11 +30,13 @@ p2 = plot(xlabel = "Days",
           legend=false,
           title="Infected population")
 
-M_S = zeros(Int, n_ensemble, n_days)
-M_E = zeros(Int, n_ensemble, n_days)
-M_I = zeros(Int, n_ensemble, n_days)
-M_R = zeros(Int, n_ensemble, n_days)
 T = e[1].T
+n_iter = length(T)
+M_S = zeros(Int, n_ensemble, n_iter)
+M_E = zeros(Int, n_ensemble, n_iter)
+M_I = zeros(Int, n_ensemble, n_iter)
+M_R = zeros(Int, n_ensemble, n_iter)
+
 
 for i in 1:n_ensemble
     M_S[i, :] .= e[i].S
@@ -52,7 +54,7 @@ ylims!(p2, 0, y_max)
 
 p_ens = plot(p1, p2)
 # Save plot
-# savefig(p_ens, "./images/seir_N$(N)_t$(τ)_ens.png")
+savefig(p_ens, "./images/seir_N$(N)_t$(τ)_ens.png")
 
 # Plot mean and error
 μSs = mean(M_S, dims=1)[1, :]
@@ -101,4 +103,4 @@ p_mean = plot(T, [μSs μEs μIs μRs],
               linetype=:steppost)
 
 # Save plot
-# savefig(p_mean, "./images/seir_N$(N)_t$(τ)_mean.png")
+savefig(p_mean, "./images/seir_N$(N)_t$(τ)_mean.png")
