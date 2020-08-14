@@ -3,7 +3,7 @@ module MySimulations
 using Random, Distributions
 import Plots.plot, Plots.plot!
 
-include("events.jl")
+include("reactions.jl")
 include("helpers.jl")
 include("propensities.jl")
 include("structs.jl")
@@ -110,13 +110,13 @@ end
 Simulates `n_days` using explicit tau leaping
 with the parameters and initial conditions specified by
 `prb`.
-
-input τ: must be between 0 and 1 (exclusive)
 """
 function tau_leap!(prb::MyProblem, n_days, τ)
+    T = [0:τ:n_days;]
+    n_iter = length(T)
     # Create data object
-    data = MyData([zeros(Int, n_days) for _ in 1:4]...,
-                   zeros(Float64, n_days), 0)
+    data = MyData([zeros(Int, n_iter) for _ in 1:4]...,
+                   T, 0)
     data.S[1] = prb.initial_condition[1]
     data.E[1] = prb.initial_condition[2]
     data.I[1] = prb.initial_condition[3]
@@ -125,37 +125,30 @@ function tau_leap!(prb::MyProblem, n_days, τ)
 
     params = prb.parameters
 
-    for n in 1:τ:n_days
-        prev = floor(Int, n)
-        post = floor(Int, n+τ)
-
+    for i in 2:n_iter
         # Copy previous state into posterior
-        if (prev != post)
-            data.S[post] = data.S[prev]
-            data.E[post] = data.E[prev]
-            data.I[post] = data.I[prev]
-            data.R[post] = data.R[prev]
-        end
+        data.S[i] = data.S[i-1]
+        data.E[i] = data.E[i-1]
+        data.I[i] = data.I[i-1]
+        data.R[i] = data.R[i-1]
 
-        # Draws from Poisson distribution
-        λ = τ * a_i([data.S[prev],
-                     data.E[prev],
-                     data.I[prev],
-                     data.R[prev]],
+        # Means for Poisson distribution
+        λ = τ * a_i([data.S[i],
+                     data.E[i],
+                     data.I[i],
+                     data.R[i]],
                     params)
 
-        birth!(                   data, post, c_rand(λ[1]              ) )
+        birth!(                   data, i, t_rand(λ[1]           ) )
 
-        susceptible_to_exposed!(  data, post, c_rand(λ[2], data.S[post]) )
-        exposed_to_infectious!(   data, post, c_rand(λ[3], data.E[post]) )
-        infectious_to_resistant!( data, post, c_rand(λ[4], data.I[post]) )
+        susceptible_to_exposed!(  data, i, t_rand(λ[2], data.S[i]) )
+        exposed_to_infectious!(   data, i, t_rand(λ[3], data.E[i]) )
+        infectious_to_resistant!( data, i, t_rand(λ[4], data.I[i]) )
 
-        susceptible_death!(       data, post, c_rand(λ[5], data.S[post]) )
-        exposed_death!(           data, post, c_rand(λ[6], data.E[post]) )
-        infected_death!(          data, post, c_rand(λ[7], data.I[post]) )
-        recovered_death!(         data, post, c_rand(λ[8], data.R[post]) )
-
-        data.T[post] = τ + data.T[prev]
+        susceptible_death!(       data, i, t_rand(λ[5], data.S[i]) )
+        exposed_death!(           data, i, t_rand(λ[6], data.E[i]) )
+        infected_death!(          data, i, t_rand(λ[7], data.I[i]) )
+        recovered_death!(         data, i, t_rand(λ[8], data.R[i]) )
     end
 end
 
