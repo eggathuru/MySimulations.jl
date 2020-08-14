@@ -57,7 +57,7 @@ function t_rand(λ, upper=Inf)
         return 0
     else
         d = Poisson(λ)
-        p = truncated(d, 0, upper)
+        p = truncated(d, -Inf, upper) # left point excluded
         return rand(p)
     end
 end
