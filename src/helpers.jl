@@ -52,9 +52,11 @@ bound `upper` distribution with mean `λ`.
 """
 function t_rand(λ, upper=Inf)
     if !(λ >= zero(λ)) || λ == Inf
-        error("Poisson λ has value $λ")
-    elseif upper == 0
-        return 0
+        error("Poisson λ has value $λ.")
+    # elseif upper == 0
+    #     return 0
+    elseif λ > upper
+        return c_rand(λ, upper)
     else
         d = Poisson(λ)
         p = truncated(d, -Inf, upper) # left point excluded

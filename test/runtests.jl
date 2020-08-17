@@ -24,6 +24,9 @@ import Plots.Plot
             try MySimulations.t_rand(Inf) catch e
                 @test typeof(e) <: ErrorException
             end
+            try MySimulations.t_rand(227646, 210778) catch e
+                @test typeof(e) <: ErrorException
+            end
             λ = 0.001
             N = 10_000
             v = [MySimulations.t_rand(0.001, 3) for _ in 1:N]
